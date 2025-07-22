@@ -35,4 +35,4 @@ jobs:
             CNA_VERSION=${{ inputs.tag_name }}
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: nocobase/nocobase:${{ inputs.tag_name }}-full,${{ secrets.ALI_DOCKER_PUBLIC_REGISTRY }}/nocobase/nocobase:${{ inputs.tag_name }}-full
+          tags: ghcr.io/${{ github.repository_owner }}/nocobase:${{ inputs.tag_name }}-full
