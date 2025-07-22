@@ -33,7 +33,7 @@ jobs:
           context: ./docker/nocobase
           file: ./docker/nocobase/Dockerfile-full
           build-args: |
-            CNA_VERSION=${{ inputs.tag_name }}
+            CNA_VERSION=latest
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ghcr.io/${{ github.repository_owner }}/nocobase:${{ inputs.tag_name }}-full
