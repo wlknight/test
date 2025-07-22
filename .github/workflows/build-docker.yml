@@ -32,6 +32,12 @@ jobs:
           registry: ${{ secrets.ALI_DOCKER_PUBLIC_REGISTRY }}
           username: ${{ secrets.ALI_DOCKER_USERNAME }}
           password: ${{ secrets.ALI_DOCKER_PASSWORD }}
+      - name: Login to GitHub Container Registry (GHCR)
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
@@ -41,4 +47,7 @@ jobs:
             CNA_VERSION=${{ inputs.tag_name }}
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: nocobase/nocobase:${{ inputs.tag_name }}-full,${{ secrets.ALI_DOCKER_PUBLIC_REGISTRY }}/nocobase/nocobase:${{ inputs.tag_name }}-full
+          tags: |
+            nocobase/nocobase:${{ inputs.tag_name }}-full
+            ${{ secrets.ALI_DOCKER_PUBLIC_REGISTRY }}/nocobase/nocobase:${{ inputs.tag_name }}-full
+            ghcr.io/${{ github.repository_owner }}/nocobase:${{ inputs.tag_name }}-full
