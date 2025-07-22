@@ -1,6 +1,4 @@
-RUN cd /app \
-  && yarn config set network-timeout 600000 -g \
-  && npx -y create-nocobase-app my-nocobase-app --skip-dev-dependencies -a -e APP_ENV=production \
+
 name: Build and Push to GHCR
 
 on:
