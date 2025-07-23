@@ -110,7 +110,7 @@ export const PinnedPluginList = React.memo((props: { onClick?: () => void }) => 
       <ConfigProvider theme={dividerTheme}>
         <Divider type="vertical" />
       </ConfigProvider>
-      <Help key="help" />
+      {/*<Help key="help" />*/}  
       <UserCenter />
     </div>
   );
