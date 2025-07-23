@@ -3,41 +3,24 @@ ARG VERDACCIO_URL=http://host.docker.internal:10104/
 ARG COMMIT_HASH
 ARG APPEND_PRESET_LOCAL_PLUGINS
 ARG BEFORE_PACK_NOCOBASE="ls -l"
-ARG PLUGINS_DIRS
 
-ENV PLUGINS_DIRS=${PLUGINS_DIRS}
 
-RUN apt-get update && apt-get install -y jq expect
 
-RUN expect <<EOD
-spawn npm adduser --registry $VERDACCIO_URL
-expect {
-  "Username:" {send "test\r"; exp_continue}
-  "Password:" {send "test\r"; exp_continue}
-  "Email: (this IS public)" {send "test@nocobase.com\r"; exp_continue}
-}
-EOD
 
 WORKDIR /tmp
 COPY . /tmp
 RUN  yarn install && yarn build --no-dts
 
-SHELL ["/bin/bash", "-c"]
+#SHELL ["/bin/bash", "-c"]
 
-RUN CURRENTVERSION="$(jq -r '.version' lerna.json)" && \
-  IFS='.-' read -r major minor patch label <<< "$CURRENTVERSION" && \
-  if [ -z "$label" ]; then CURRENTVERSION="$CURRENTVERSION-rc"; fi && \
-  cd /tmp && \
-  NEWVERSION="$(echo $CURRENTVERSION).$(date +'%Y%m%d%H%M%S')" \
-  &&  git checkout -b release-$(date +'%Y%m%d%H%M%S') \
-  && yarn lerna version ${NEWVERSION} -y --no-git-tag-version
 
-RUN git config user.email "test@mail.com"  \
-    && git config user.name "test" && git add .  \
-    && git commit -m "chore(versions): test publish packages"
-RUN yarn release:force --registry $VERDACCIO_URL
 
-RUN yarn config set registry $VERDACCIO_URL
+#RUN git config user.email "test@mail.com"  \
+    #&& git config user.name "test" && git add .  \
+    #&& git commit -m "chore(versions): test publish packages"
+#RUN yarn release:force --registry $VERDACCIO_URL
+
+#RUN yarn config set registry $VERDACCIO_URL
 WORKDIR /app
 RUN cd /app \
   && yarn config set network-timeout 600000 -g \
@@ -57,17 +40,17 @@ RUN cd /app \
 
 FROM node:20-bookworm-slim
 
-RUN apt-get update && apt-get install -y --no-install-recommends wget gnupg ca-certificates \
-  && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y --no-install-recommends wget gnupg ca-certificates \
+  #&& rm -rf /var/lib/apt/lists/*
 
-RUN echo "deb [signed-by=/usr/share/keyrings/pgdg.asc] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-RUN wget --quiet -O /usr/share/keyrings/pgdg.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+#RUN echo "deb [signed-by=/usr/share/keyrings/pgdg.asc] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+#RUN wget --quiet -O /usr/share/keyrings/pgdg.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   nginx \
   libaio1 \
-  postgresql-client-16 \
-  postgresql-client-17 \
+  #postgresql-client-16 \
+  #postgresql-client-17 \
   libfreetype6 \
   fontconfig \
   libgssapi-krb5-2 \
