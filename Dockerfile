@@ -1,45 +1,39 @@
-FROM node:20-bookworm AS builder
-ARG VERDACCIO_URL=http://host.docker.internal:10104/
+# 第一阶段：构建
+FROM node:20-bookworm as builder
+
+# 设置构建参数
 ARG COMMIT_HASH
 ARG APPEND_PRESET_LOCAL_PLUGINS
 ARG BEFORE_PACK_NOCOBASE="ls -l"
+ARG PLUGINS_DIRS
 
+ENV PLUGINS_DIRS=${PLUGINS_DIRS}
 
+# 安装必要的系统依赖
+RUN apt-get update && apt-get install -y jq
 
+# 设置工作目录
+WORKDIR /app
 
-WORKDIR /tmp
-COPY . /tmp
-RUN  yarn install && yarn build --no-dts
+# 复制整个仓库代码
+COPY . .
 
-#SHELL ["/bin/bash", "-c"]
+# 安装依赖并构建
+RUN yarn install && yarn build --no-dts
 
-
-
-#RUN git config user.email "test@mail.com"  \
-    #&& git config user.name "test" && git add .  \
-    #&& git commit -m "chore(versions): test publish packages"
-#RUN yarn release:force --registry $VERDACCIO_URL
-
-#RUN yarn config set registry $VERDACCIO_URL
-
-WORKDIR /tmp
+# 如果有自定义构建后操作
+WORKDIR /app
 RUN $BEFORE_PACK_NOCOBASE
 
-RUN rm -rf packages/app/client/src/.umi \
-  && mkdir -p /app \
-  && tar --exclude=node_modules -zcf /app/nocobase.tar.gz -C /tmp .
+# 打包应用（假设构建后的文件在当前目录）
+RUN rm -rf packages/app/client/src/.umi 2>/dev/null || true \
+  && rm -rf /tmp/nocobase.tar.gz 2>/dev/null || true \
+  && tar -zcf /tmp/nocobase.tar.gz -C /app .
 
+# 第二阶段：运行时镜像
+FROM node:20-bookworm-slim
 
-FROM node:20-bookworm
-
-RUN corepack enable
-
-#RUN apt-get update && apt-get install -y --no-install-recommends wget gnupg ca-certificates \
-  #&& rm -rf /var/lib/apt/lists/*
-
-#RUN echo "deb [signed-by=/usr/share/keyrings/pgdg.asc] http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list
-#RUN wget --quiet -O /usr/share/keyrings/pgdg.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
-
+# 安装运行时依赖
 RUN apt-get update && apt-get install -y --no-install-recommends \
   nginx \
   libaio1 \
@@ -50,28 +44,31 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libgssapi-krb5-2 \
   fonts-liberation \
   fonts-noto-cjk \
-  build-essential \
-  python3 \
   && rm -rf /var/lib/apt/lists/*
 
+# 配置 Nginx
 RUN rm -rf /etc/nginx/sites-enabled/default
 COPY ./docker/nocobase/nocobase.conf /etc/nginx/sites-enabled/nocobase.conf
+
+# 从 builder 阶段复制打包文件
+COPY --from=builder /tmp/nocobase.tar.gz /app/nocobase.tar.gz
+
+# 解压应用文件
 WORKDIR /app
-
-COPY --from=builder /app/nocobase.tar.gz /app/nocobase.tar.gz
-
-RUN mkdir -p /app/nocobase \
-  && tar -zxf nocobase.tar.gz -C /app/nocobase \
+RUN mkdir -p nocobase \
+  && tar -zxf nocobase.tar.gz -C nocobase \
   && rm -f nocobase.tar.gz
 
+# 创建必要的目录并记录 commit hash
 WORKDIR /app/nocobase
+RUN mkdir -p storage/uploads/ \
+  && if [ -n "$COMMIT_HASH" ]; then echo "$COMMIT_HASH" >> storage/uploads/COMMIT_HASH; fi
 
-RUN yarn install --production --ignore-optional --verbose
-
-# RUN apt-get purge -y --auto-remove build-essential python3 && rm -rf /var/lib/apt/lists/*
-
-RUN mkdir -p /app/nocobase/storage/uploads/ && echo "$COMMIT_HASH" >> /app/nocobase/storage/uploads/COMMIT_HASH
-
+# 复制入口脚本
 COPY ./docker/nocobase/docker-entrypoint.sh /app/
 
+# 设置执行权限
+RUN chmod +x /app/docker-entrypoint.sh
+
+# 启动命令
 CMD ["/app/docker-entrypoint.sh"]
