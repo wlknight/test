@@ -21,6 +21,7 @@ import { Spin } from 'antd';
 import React, { FC } from 'react';
 import { Outlet } from 'react-router-dom';
 import { AuthenticatorsContext } from '../authenticator';
+import backgroundImage from '../assets/background.png';
 
 export const AuthenticatorsContextProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
   const api = useAPIClient();
@@ -56,14 +57,28 @@ export function AuthLayout() {
   const { data } = useSystemSettings() || {};
   const { token } = useToken();
   return (
-    <div
-      style={{
-        maxWidth: 320,
-        margin: '0 auto',
-        paddingTop: '20vh',
-        paddingBottom: '20vh',
-      }}
-    >
+    <>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          zIndex: -1,
+        }}
+      />
+      <div
+        style={{
+          maxWidth: 320,
+          margin: '0 auto',
+          paddingTop: '20vh',
+          paddingBottom: '20vh',
+        }}
+      >
       <div style={{ position: 'fixed', top: '2em', right: '2em' }}>
         <SwitchLanguage />
       </div>
@@ -87,5 +102,6 @@ export function AuthLayout() {
         <PoweredBy />
       </div>
     </div>
+    </>
   );
 }
