@@ -66,7 +66,7 @@ RUN mkdir -p /app/nocobase \
 
 WORKDIR /app/nocobase
 
-RUN yarn install --production --ignore-optional
+RUN yarn install --production --ignore-optional --verbose
 
 # RUN apt-get purge -y --auto-remove build-essential python3 && rm -rf /var/lib/apt/lists/*
 
