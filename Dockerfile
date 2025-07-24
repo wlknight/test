@@ -1,4 +1,4 @@
-FROM node:20-bookworm as builder
+FROM node:20-bookworm AS builder
 ARG VERDACCIO_URL=http://host.docker.internal:10104/
 ARG COMMIT_HASH
 ARG APPEND_PRESET_LOCAL_PLUGINS
@@ -31,6 +31,8 @@ RUN rm -rf packages/app/client/src/.umi \
 
 
 FROM node:20-bookworm-slim
+
+RUN corepack enable
 
 #RUN apt-get update && apt-get install -y --no-install-recommends wget gnupg ca-certificates \
   #&& rm -rf /var/lib/apt/lists/*
