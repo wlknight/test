@@ -26,8 +26,8 @@ WORKDIR /tmp
 RUN $BEFORE_PACK_NOCOBASE
 
 RUN rm -rf packages/app/client/src/.umi \
-  && rm -rf nocobase.tar.gz \
-  && tar -zcf ./nocobase.tar.gz -C /tmp .
+  && mkdir -p /app \
+  && tar -zcf /app/nocobase.tar.gz -C /tmp .
 
 
 FROM node:20-bookworm-slim
@@ -52,9 +52,15 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN rm -rf /etc/nginx/sites-enabled/default
 COPY ./docker/nocobase/nocobase.conf /etc/nginx/sites-enabled/nocobase.conf
+WORKDIR /app
+
 COPY --from=builder /app/nocobase.tar.gz /app/nocobase.tar.gz
 
-WORKDIR /app/nocobase
+RUN mkdir -p /app/nocobase \
+  && tar -zxf nocobase.tar.gz -C /app/nocobase \
+  && rm -f nocobase.tar.gz \
+  && cd /app/nocobase \
+  && yarn install --production --ignore-optional
 
 RUN mkdir -p /app/nocobase/storage/uploads/ && echo "$COMMIT_HASH" >> /app/nocobase/storage/uploads/COMMIT_HASH
 
