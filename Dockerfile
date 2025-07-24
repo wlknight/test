@@ -21,21 +21,13 @@ RUN  yarn install && yarn build --no-dts
 #RUN yarn release:force --registry $VERDACCIO_URL
 
 #RUN yarn config set registry $VERDACCIO_URL
-WORKDIR /app
-RUN cd /app \
-  && yarn config set network-timeout 600000 -g \
-  && yarn create nocobase-app my-nocobase-app -a -e APP_ENV=production -e APPEND_PRESET_LOCAL_PLUGINS=$APPEND_PRESET_LOCAL_PLUGINS \
-  && cd /app/my-nocobase-app \
-  && yarn install --production \
-  && yarn add newrelic --production -W
 
-WORKDIR /app/my-nocobase-app
+WORKDIR /tmp
 RUN $BEFORE_PACK_NOCOBASE
 
-RUN cd /app \
-  && rm -rf my-nocobase-app/packages/app/client/src/.umi \
+RUN rm -rf packages/app/client/src/.umi \
   && rm -rf nocobase.tar.gz \
-  && tar -zcf ./nocobase.tar.gz -C /app/my-nocobase-app .
+  && tar -zcf ./nocobase.tar.gz -C /tmp .
 
 
 FROM node:20-bookworm-slim
