@@ -27,10 +27,10 @@ RUN $BEFORE_PACK_NOCOBASE
 
 RUN rm -rf packages/app/client/src/.umi \
   && mkdir -p /app \
-  && tar -zcf /app/nocobase.tar.gz -C /tmp .
+  && tar --exclude=node_modules -zcf /app/nocobase.tar.gz -C /tmp .
 
 
-FROM node:20-bookworm-slim
+FROM node:20-bookworm
 
 RUN corepack enable
 
@@ -50,6 +50,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
   libgssapi-krb5-2 \
   fonts-liberation \
   fonts-noto-cjk \
+  build-essential \
+  python3 \
   && rm -rf /var/lib/apt/lists/*
 
 RUN rm -rf /etc/nginx/sites-enabled/default
@@ -60,9 +62,13 @@ COPY --from=builder /app/nocobase.tar.gz /app/nocobase.tar.gz
 
 RUN mkdir -p /app/nocobase \
   && tar -zxf nocobase.tar.gz -C /app/nocobase \
-  && rm -f nocobase.tar.gz \
-  && cd /app/nocobase \
-  && yarn install --production --ignore-optional
+  && rm -f nocobase.tar.gz
+
+WORKDIR /app/nocobase
+
+RUN yarn install --production --ignore-optional
+
+# RUN apt-get purge -y --auto-remove build-essential python3 && rm -rf /var/lib/apt/lists/*
 
 RUN mkdir -p /app/nocobase/storage/uploads/ && echo "$COMMIT_HASH" >> /app/nocobase/storage/uploads/COMMIT_HASH
 
