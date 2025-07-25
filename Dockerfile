@@ -73,7 +73,6 @@ FROM node:20-bookworm-slim
 
 # 安装运行时依赖 (保持不变)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    nginx \
     libaio1 \
     libfreetype6 \
     fontconfig \
@@ -82,9 +81,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     fonts-noto-cjk \
     && rm -rf /var/lib/apt/lists/*
 
-# 配置 Nginx (保持不变)
-RUN rm -rf /etc/nginx/sites-enabled/default
-COPY ./docker/nocobase/nocobase.conf /etc/nginx/sites-enabled/nocobase.conf
 
 # 从 builder 阶段复制打包文件 (保持不变)
 COPY --from=builder /tmp/nocobase.tar.gz /app/nocobase.tar.gz
